@@ -91,12 +91,12 @@ impl ColourGradient {
 
     pub fn twilight_theme() -> Self {
         let mut result = ColourGradient::new();
-        result.add_colour(RGBAColour::new(0, 0, 0, 255)); // Black
+        // result.add_colour(RGBAColour::new(0, 0, 0, 255)); // Black
         result.add_colour(RGBAColour::new(0, 0, 128, 255)); // Dark Blue
         result.add_colour(RGBAColour::new(114, 169, 242, 255)); // Blue
         result.add_colour(RGBAColour::new(227, 61, 215, 255)); // Pink
         result.add_colour(RGBAColour::new(246, 55, 55, 255)); // Red
-        result.add_colour(RGBAColour::new(255, 255, 255, 255)); // White
+        // result.add_colour(RGBAColour::new(255, 255, 255, 255)); // White
         result
     }
 
