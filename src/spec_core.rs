@@ -38,7 +38,6 @@ use flate2::read::GzDecoder;
 use std::io::Read;
 use image::{GrayImage, Luma};
 use std::path::Path;
-use crate::colour::{ColourGradient, ColourTheme};
 
 
  ///
@@ -398,6 +397,8 @@ fn parse_csv_data(data: &str, column_index: usize) -> Result<Vec<f32>, Box<dyn s
  
 #[cfg(test)]
 mod tests {
+    use crate::ColourGradient;
+    use crate::FrequencyScale;
     use super::*;
 
     #[test]
@@ -405,60 +406,61 @@ mod tests {
         let _data = [0];
     }
     #[test]
-        fn main() {
-            // Read and decompress the data
-            let decompressed_data = decompress_csv("/Users/maxwellsun/Desktop/Workspace/D/deepdata.csv.gz").unwrap();
-        
-            // Parameters
-            let column_index = 1; // Change this index to the column you want to read
-            let data = parse_csv_data(&decompressed_data, column_index).unwrap();
-        
-            // Other parameters
-            let num_bins = 1024;
-            let step_size = 128;
-            let window_fn = |i: usize, n: usize| {
-                0.5 * (1.0 - (2.0 * std::f32::consts::PI * i as f32 / (n as f32 - 1.0)).cos())
-            };
-        
-            // Create the spectrogram computation object
-            let mut spec_compute = SpecCompute::new(num_bins, step_size, data.clone(), window_fn);
-        
-            // Compute the spectrogram
-            let spectrogram = spec_compute.compute();
-            let width = (data.len() - num_bins) / step_size;
-            let height = num_bins / 2;
-        
-            use image::{ImageBuffer, Rgba};
-        
-            // Create the colour gradient
-            let gradient = ColourGradient::create(ColourTheme::Twilight);
-        
-            // Create an image buffer
-            let mut img = ImageBuffer::new(width as u32, height as u32);
-        
-            // Find the min and max values in the spectrogram for normalization
-            let min_value = spectrogram.spec.iter().cloned().fold(f32::INFINITY, f32::min);
-            let max_value = spectrogram.spec.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
-        
-            // Normalize and convert to gradient colors
-            for (i, &value) in spectrogram.spec.iter().enumerate() {
-                let x = (i % width) as u32;
-                let y = (i / width) as u32;
-        
-                if x < img.width() && y < img.height() {
-                    // Normalize the value to the range [0.0, 1.0]
-                    let normalized_value = (value - min_value) / (max_value - min_value);
-        
-                    // Get the color from the gradient
-                    let color = gradient.get_colour(normalized_value);
-        
-                    // Store the color in the image
-                    img.put_pixel(x, y, Rgba([color.r, color.g, color.b, color.a]));
-                }
-            }
-        
-            // Save the image to a file
-            let path = Path::new("spectrogram_twilight.png");
-            img.save(path).expect("Failed to save image");
-        }
+    fn main() {
+        // Read and decompress the data
+        let decompressed_data = decompress_csv("/Users/maxwellsun/Desktop/Workspace/D/deepdata.csv.gz").unwrap();
+    
+        // Parameters
+        let column_index = 1; // Change this index to the column you want to read
+        let data = parse_csv_data(&decompressed_data, column_index).unwrap();
+    
+        // Other parameters
+        let num_bins = 1024;
+        let step_size = 128;
+        let window_fn = |i: usize, n: usize| {
+            0.5 * (1.0 - (2.0 * std::f32::consts::PI * i as f32 / (n as f32 - 1.0)).cos())
+        };
+    
+        // Create the spectrogram computation object
+        let mut spec_compute = SpecCompute::new(num_bins, step_size, data.clone(), window_fn);
+    
+        // Compute the spectrogram
+        let spectrogram: &mut Spectrogram = &mut spec_compute.compute();
+        let width = (data.len() - num_bins) / step_size;
+        let height = num_bins / 2;
+        let gradient: &mut ColourGradient = &mut ColourGradient::twilight_theme();
+        spectrogram.to_png(Path::new("/Users/maxwellsun/Desktop/Workspace/spectrogram/spectrogram.png"), FrequencyScale::Linear, gradient, width, height,None,None);
+        // use image::{ImageBuffer, Rgba};
+    
+        // // Create the colour gradient
+        // let gradient = ColourGradient::create(ColourTheme::Twilight);
+    
+        // // Create an image buffer
+        // let mut img = ImageBuffer::new(width as u32, height as u32);
+    
+        // // Find the min and max values in the spectrogram for normalization
+        // let min_value = spectrogram.spec.iter().cloned().fold(f32::INFINITY, f32::min);
+        // let max_value = spectrogram.spec.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+    
+        // // Normalize and convert to gradient colors
+        // for (i, &value) in spectrogram.spec.iter().enumerate() {
+        //     let x = (i % width) as u32;
+        //     let y = (i / width) as u32;
+    
+        //     if x < img.width() && y < img.height() {
+        //         // Normalize the value to the range [0.0, 1.0]
+        //         let normalized_value = (value - min_value) / (max_value - min_value);
+    
+        //         // Get the color from the gradient
+        //         let color = gradient.get_colour(normalized_value);
+    
+        //         // Store the color in the image
+        //         img.put_pixel(x, y, Rgba([color.r, color.g, color.b, color.a]));
+        //     }
+        // }
+    
+        // // Save the image to a file
+        // let path = Path::new("spectrogram_twilight.png");
+        // img.save(path).expect("Failed to save image");
     }
+}
